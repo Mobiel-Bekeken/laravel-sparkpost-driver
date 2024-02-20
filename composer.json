@@ -1,12 +1,12 @@
 {
-    "name": "vemcogroup/laravel-sparkpost-driver",
+    "name": "mobiel-bekeken/laravel-sparkpost-driver",
     "description": "SparkPost driver to use with Laravel 6.x|7.x|8.x|9.x|10.x",
     "keywords": [
         "mail",
         "laravel",
         "sparkpost"
     ],
-    "homepage": "https://github.com/vemcogroup/laravel-sparkpost-driver",
+    "homepage": "https://github.com/mobiel-bekeken/laravel-sparkpost-driver",
     "license": "MIT",
     "authors": [
         {

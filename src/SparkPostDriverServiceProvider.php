@@ -15,10 +15,11 @@ class SparkPostDriverServiceProvider extends ServiceProvider
             $manager->extend('sparkpost', function() {
                 $config = config('services.sparkpost', []);
                 $sparkpostOptions = $config['options'] ?? [];
+                $sparkpostMetadata = $config['metadata'] ?? [];
                 $guzzleOptions = $config['guzzle'] ?? [];
                 $client = $this->app->make(Client::class, $guzzleOptions);
 
-                return new SparkPostTransport($client, $config['secret'], $sparkpostOptions);
+                return new SparkPostTransport($client, $config['secret'], $sparkpostOptions, $sparkpostMetadata);
             });
 
             return $manager;

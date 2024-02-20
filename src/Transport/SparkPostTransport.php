@@ -37,6 +37,13 @@ class SparkPostTransport implements TransportInterface
     protected $options = [];
 
     /**
+     * The SparkPost transmission metadata.
+     *
+     * @var array
+     */
+    protected $metadata = [];
+
+    /**
      * Create a new SparkPost transport instance.
      *
      * @param ClientInterface $client
@@ -44,11 +51,12 @@ class SparkPostTransport implements TransportInterface
      * @param  array  $options
      * @return void
      */
-    public function __construct(ClientInterface $client, $key, $options = [])
+    public function __construct(ClientInterface $client, $key, $options = [], $metadata = [])
     {
         $this->key = $key;
         $this->client = $client;
         $this->options = $options;
+        $this->metadata = $metadata;
     }
 
     public function __toString(): string
@@ -102,6 +110,7 @@ class SparkPostTransport implements TransportInterface
             'json' => array_merge([
                 'recipients' => $recipients,
                 'content' => $content,
+                'metadata' => $this->metadata
             ], $this->options),
         ]);
 
