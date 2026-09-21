@@ -4,8 +4,10 @@ namespace Vemcogroup\SparkPostDriver\Transport;
 
 use JsonException;
 use GuzzleHttp\ClientInterface;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
+use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\RawMessage;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\SentMessage;
@@ -97,6 +99,7 @@ class SparkPostTransport implements TransportInterface
             'html' => $message->getHtmlBody(),
             'text' => $message->getTextBody(),
             'attachments' => $this->getAttachments($message),
+            'inline_images' => $this->getInlineImages($message),
         ];
 
         if (($cc = $this->getCc($message)->flatten(1)->pluck('email'))->count()) {
@@ -214,19 +217,44 @@ class SparkPostTransport implements TransportInterface
         );
     }
 
+    protected function getInlineImages(RawMessage $message): array
+    {
+        return collect($message->getAttachments())
+            ->filter(function (DataPart $attachment) {
+                return $attachment->getDisposition() === 'inline';
+            })
+            ->map(function (DataPart $attachment) {
+                if (version_compare(Application::VERSION, '12', '>=')) {
+                    $cid = $attachment->getContentId();
+                } else {
+                    $cid = $attachment->getPreparedHeaders()->get('content-disposition')->getParameter('filename');
+                }
+
+                return [
+                    'name' => $cid,
+                    'type' => $attachment->getContentType(),
+                    'data' => base64_encode($attachment->getBody()),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
     protected function getAttachments(RawMessage $message): array
     {
-        $attachments = [];
-
-        foreach ($message->getAttachments() as $attachment) {
-            $attachments[] = [
-                'name' => $attachment->getPreparedHeaders()->get('content-disposition')->getParameter('filename'),
-                'type' => $attachment->getMediaType() . '/' . $attachment->getMediaSubtype(),
-                'data' => base64_encode($attachment->getBody()),
-            ];
-        }
-
-        return $attachments;
+        return collect($message->getAttachments())
+            ->filter(function (DataPart $attachment) {
+                return $attachment->getDisposition() !== 'inline';
+            })
+            ->map(function (DataPart $attachment) {
+                return [
+                    'name' => $attachment->getPreparedHeaders()->get('content-disposition')->getParameter('filename'),
+                    'type' => $attachment->getContentType(),
+                    'data' => base64_encode($attachment->getBody()),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     public function validateSingleRecipient($email): JsonResponse

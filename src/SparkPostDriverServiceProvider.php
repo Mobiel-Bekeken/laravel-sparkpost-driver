@@ -17,7 +17,7 @@ class SparkPostDriverServiceProvider extends ServiceProvider
                 $sparkpostOptions = $config['options'] ?? [];
                 $sparkpostMetadata = $config['metadata'] ?? [];
                 $guzzleOptions = $config['guzzle'] ?? [];
-                $client = $this->app->make(Client::class, $guzzleOptions);
+                $client = $this->app->make(Client::class, ['config' => $guzzleOptions]);
 
                 return new SparkPostTransport($client, $config['secret'], $sparkpostOptions, $sparkpostMetadata);
             });
